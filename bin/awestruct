@@ -10,6 +10,7 @@ require 'awestruct/commands/generate'
 require 'awestruct/commands/server'
 require 'awestruct/commands/deploy'
 require 'awestruct/commands/git_hub_pages'
+require 'awestruct/commands/openshift'
 require 'yaml'
 require 'fssm'
 require 'fileutils'
@@ -204,12 +205,15 @@ if ( options.deploy )
   end
 
   puts "deploying to '#{options.profile}'"
-  if (deploy_data['host'] == 'github_pages')
-    branch = deploy_data['branch'] ? deploy_data['branch'] : 'gh-pages'
-    puts "Publishing to github pages"
-    cmd = Awestruct::Commands::GitHubPages.new( site_path, branch )
-  else
-    cmd = Awestruct::Commands::Deploy.new( site_path, deploy_data )
+
+  case deploy_data['type']
+    when 'openshift'
+      cmd = Awestruct::Commands::OpenShift.new( site_path, deploy_data )
+    when 'github_pages'
+      branch = deploy_data['branch'] ? deploy_data['branch'] : 'gh-pages'
+      cmd = Awestruct::Commands::GitHubPages.new( site_path, branch )
+    else
+      cmd = Awestruct::Commands::Deploy.new( site_path, deploy_data )
   end
   cmd.run
   puts "deploy finished"
